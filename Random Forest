@@ -1,0 +1,136 @@
+import numpy as np
+import pandas as pd
+import os
+
+os.getcwd()
+
+os.chdir("C:\\Users\\gurme\\OneDrive\\Documents\\Documents\\Gagan\\DS\\DS\\Python\\Kaggle Comps\\Tabular Playground Series Jul21-Kaggle")
+
+train=pd.read_csv("train.csv")
+
+test=pd.read_csv("test.csv")
+
+ss=pd.read_csv("sample_submission.csv")
+
+train.shape
+
+test.shape
+
+train.columns
+
+test.columns
+
+train.isnull().sum().sum()
+
+test.isnull().sum().sum()
+
+
+
+train.columns
+
+train["date"]=pd.to_datetime(train["date_time"])
+
+train.drop(["date_time"],1,inplace=True)
+
+train.head()
+
+train.dtypes
+
+train["date_time1"]=pd.to_timedelta(train["date_time"])
+
+
+
+target_df=pd.DataFrame([train['target_carbon_monoxide'],train['target_benzene'],train['target_nitrogen_oxides']])
+
+
+target_df.head()
+
+target_t=target_df.T
+
+target_t.head()
+
+
+
+train_x=train.drop(["target_carbon_monoxide","target_benzene","target_nitrogen_oxides"],axis=1)
+
+!pip install xgboost
+
+from sklearn.ensemble import RandomForestRegressor
+from xgboost.sklearn import XGBRegressor
+from sklearn.model_selection import RandomizedSearchCV
+
+
+
+rf=RandomForestRegressor()
+
+param_dist={"n_estimators":10,"max_features":30,"bootstrap":[True,False],
+            "class_weight":[None,"balanced"],"criterion":["entropy","gini"],"max_depth":10,
+            "min_samples_leaf":10,"min_samples_split":20}
+
+criterion='entropy', max_depth=10, max_features=30,
+                      min_samples_leaf=10, min_samples_split=20,
+                      n_estimators=50
+
+random_search=RandomizedSearchCV(rf,param_distributions=param_dist,n_iter=10,scoring="roc_auc",cv=5,n_jobs=-1,verbose=True)
+
+random_search.fit(train_x,target_t)
+
+rf.fit(train_x,target_t)
+
+test.shape
+test.head()
+test1=test.drop(["date_time"],1)
+
+predictions=rf.predict(test1)
+
+predictions.shape
+
+predictions
+
+predictions_d=pd.DataFrame(predictions,columns=["target_carbon_monoxide","target_benzene","target_nitrogen_oxides"])
+
+test.head()
+
+ss
+
+t=test.date_time
+
+t.dtypes
+
+t_d=pd.DataFrame(t)
+
+predictions_1=pd.concat([t_d,predictions_d],1)
+
+predictions_1.head()
+
+predictions.shape
+
+import datetime
+from datetime import datetime
+
+? datetime
+
+predictions_1.dtypes
+
+predictions_2=predictions_1["date_time"].astype("str")
+
+predictions_1["date_time_1"]=list(map(lambda x: datetime.strptime(x,'%Y-%m-%d %H:%M:%S').strftime('%m/%d/%Y %H:%M:%S'), predictions_1["date_time"]))
+
+def date_convert(date_to_convert):
+     return datetime.strptime(predictions_2, '%b %d, %Y').strftime('%m/%d/%Y')
+
+predictions_3 = predictions_2.apply(date_convert)
+
+
+predictions_1.drop(["date_time"],1,inplace=True)
+
+
+predictions_1.head()
+predictions_1["date_time"]=predictions_1["date_time_1"]
+
+predictions_1.drop(["date_time_1"],1,inplace=True)
+
+predictions_1.to_csv("TabularSeriesJul21b.csv")
+
+predictions_1.head()
+
